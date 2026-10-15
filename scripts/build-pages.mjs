@@ -6,7 +6,7 @@ import path from 'node:path';
 export async function buildPages(output=path.resolve('dist')){
   const root=fileURLToPath(new URL('../',import.meta.url));
   await mkdir(output,{recursive:true});
-  for(const file of ['index.html','app.js','radar-core.mjs','style.css','star-garden.png'])
+  for(const file of ['index.html','app.js','radar-core.mjs','radar-search.mjs','style.css','star-garden.png'])
     await copyFile(path.join(root,'public',file),path.join(output,file));
   await cp(path.join(root,'public/briefly'),path.join(output,'briefly'),{recursive:true});
   const html=await readFile(path.join(output,'index.html'),'utf8');

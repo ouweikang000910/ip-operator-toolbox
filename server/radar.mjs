@@ -1,6 +1,6 @@
 import {readFileSync,writeFileSync,renameSync,mkdirSync} from 'node:fs';
 import path from 'node:path';
-import {rankTopics,shanghaiDay} from '../public/radar-core.mjs';
+import {RADAR_TOPIC_LIMIT,rankTopics,shanghaiDay} from '../public/radar-core.mjs';
 export const sources=[
   {id:'baidu',name:'百度热搜',url:'https://top.baidu.com/board?tab=realtime',boardURL:'https://top.baidu.com/board?tab=realtime',heatLabel:'热搜指数'},
   {id:'toutiao',name:'今日头条',url:'https://www.toutiao.com/hot-event/hot-board/?origin=toutiao_pc',boardURL:'https://www.toutiao.com/',heatLabel:'热度'},
@@ -48,8 +48,8 @@ export function createRadar({dataDir,fetcher=fetch,clock=()=>Date.now(),ttl=10*6
   function snapshotResult(states,extra={}){
     const today=shanghaiDay(clock());const usable=states.filter(s=>s.status!=='unavailable');
     const entries=usable.flatMap(s=>(snapshots[s.id]?.items||[]).map(item=>({...item,sourceId:s.id,sourceName:s.name,heatLabel:s.heatLabel,fetchedAt:s.fetchedAt,cached:s.status==='cached'})));
-    const items=rankTopics(entries);const times=usable.map(s=>s.fetchedAt).filter(Boolean).sort();
-    return {day:today,timeZone:'Asia/Shanghai',items,sources:states,updatedAt:times.at(-1)||null,status:!items.length?'unavailable':states.some(s=>s.status!=='live')?'partial':'live',fromCache:false,candidateCount:entries.length,...extra};
+    const searchItems=rankTopics(entries,150),items=searchItems.slice(0,RADAR_TOPIC_LIMIT);const times=usable.map(s=>s.fetchedAt).filter(Boolean).sort();
+    return {day:today,timeZone:'Asia/Shanghai',items,searchItems,sources:states,updatedAt:times.at(-1)||null,status:!items.length?'unavailable':states.some(s=>s.status!=='live')?'partial':'live',fromCache:false,candidateCount:entries.length,...extra};
   }
   async function refresh(){
     const attempt=clock();lastAttempt=attempt;

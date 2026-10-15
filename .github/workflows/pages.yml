@@ -26,7 +26,7 @@ jobs:
         with:
           node-version: '22'
       - name: Verify radar
-        run: node --test tests/radar.test.mjs
+        run: npm test
       - uses: actions/cache@v4
         with:
           path: .radar-cache
@@ -36,6 +36,8 @@ jobs:
         run: node scripts/build-pages.mjs
       - name: Refresh today's topics
         run: node scripts/update-radar.mjs
+        env:
+          RADAR_HISTORY_URL: https://ouweikang000910.github.io/ip-operator-toolbox/radar-search.json
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

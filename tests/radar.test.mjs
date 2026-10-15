@@ -40,7 +40,7 @@ test('热榜返回50条，合并并发请求，TTL和手动刷新冷却生效',a
   let now=Date.parse('2026-10-14T10:00:00Z'),calls=0;
   const radar=createRadar({clock:()=>now,fetcher:async url=>{calls++;return fixture(url);}});
   const [a,b]=await Promise.all([radar.get(),radar.get()]);
-  assert.deepEqual(a,b);assert.equal(calls,3);assert.equal(a.status,'live');assert.equal(a.items.length,50);
+  assert.deepEqual(a,b);assert.equal(calls,3);assert.equal(a.status,'live');assert.equal(a.items.length,50);assert.equal(a.searchItems.length,100);
   assert.equal((await radar.get()).fromCache,true);await radar.get({force:true});assert.equal(calls,3);
   now+=30001;await radar.get({force:true});assert.equal(calls,6);
   now+=600001;await radar.get();assert.equal(calls,9);
