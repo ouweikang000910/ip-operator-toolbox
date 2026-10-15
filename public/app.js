@@ -1,5 +1,5 @@
 import {RADAR_TOPIC_LIMIT,radarCategories,shanghaiDay} from './radar-core.mjs';
-import {searchTopics} from './radar-search.mjs';
+import {fetchWebTopics} from './web-search-client.mjs';
 const hosted=document.documentElement.dataset.hosting==='github-pages';
 const radarRefreshNote=hosted?'榜单约每半小时自动更新；点击刷新读取最新已发布榜单，更新时间以页面标注为准。':'每次打开检查更新，10 分钟内复用当天数据；手动刷新间隔至少 30 秒。';
 const $=selector=>document.querySelector(selector);
@@ -15,7 +15,7 @@ const onlineTools=[
   {name:'视频镜头库',label:'给下一个画面，一点灵感',icon:'film',description:'查看镜头与动效参考，找到适合你的视频表达。',url:'https://ouweikang000910.github.io/-/',action:'浏览视频镜头库',type:'在线镜头库'}
 ];
 let route=location.hash==='#radar'?'radar':'home',category='全部',radar=null,loading=false,requestPromise=null,loadError='',lastClientFetch=0;
-let searchDraft='',query='',searchPeriod='week',searchIndex=null,indexPromise=null,indexError='',lastIndexFetch=0,searchTimer=null,composing=false,displayedTopics=[];
+let searchDraft='',query='',searchPeriod='week',webResult=null,webLoading=false,webError='',webController=null,searchSequence=0,displayedTopics=[];
 let motion=localStorage.getItem('toolbox-online-motion')!=='off';
 const time=value=>value?new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(value)):'—';
 const dayLabel=day=>day?.replace(/^(\d+)-(\d+)-(\d+)$/,'$1 年 $2 月 $3 日')||'';
@@ -24,11 +24,11 @@ function home(){return `<section class="home-hero"><div class="eyebrow"><span></
 function sourceStatus(s){return s.status==='live'?'已获取':s.status==='cached'?'使用今日缓存':'暂不可用';}
 function heat(value){const number=Number(value);if(!Number.isFinite(number)||number<=0)return '';return number>=10000?(number/10000).toFixed(1)+'万':number.toLocaleString('zh-CN');}
 function searchPanel(){
-  return `<section class="radar-search" aria-label="按方向搜索热门选题"><form id="direction-search"><label for="direction-query">想找哪个方向的热门选题？</label><div class="search-input-row"><span aria-hidden="true">${icon('search')}</span><input id="direction-query" type="search" maxlength="80" autocomplete="off" placeholder="输入方向，如 AI、职场、婚礼…" value="${esc(searchDraft)}"><button class="button" type="submit">搜索热门选题 ${icon('arrow')}</button></div></form><div class="search-options"><div class="search-suggestions"><span>试试</span>${['AI','职场','婚礼','旅游','财经'].map(term=>`<button type="button" data-action="suggestion" data-query="${term}">${term}</button>`).join('')}</div><div class="search-period" aria-label="搜索时间范围"><button type="button" data-action="period" data-period="week" aria-pressed="${searchPeriod==='week'}">近 7 天</button><button type="button" data-action="period" data-period="today" aria-pressed="${searchPeriod==='today'}">只看今天</button></div></div><div class="search-footnote"><span>${indexPromise?'正在读取已收录热点…':searchIndex?.fromDay?`历史从 ${esc(searchIndex.fromDay)} 开始累计，最多保留近 7 天。`:'搜索全部已收录热榜，支持方向相关词匹配。历史从启用搜索起累计。'}</span>${query?'<button data-action="clear-search" type="button">查看今日 TOP 50</button>':''}</div></section>`;
+  return `<section class="radar-search" aria-label="联网搜索热门选题"><form id="direction-search"><label for="direction-query"><span class="live-search-badge">联网搜索</span> 输入一个方向，找到网上值得聊的内容</label><div class="search-input-row"><span aria-hidden="true">${icon('search')}</span><input id="direction-query" type="search" maxlength="80" autocomplete="off" placeholder="如：咖啡店创业、婚礼布置、AI 做视频…" value="${esc(searchDraft)}"><button class="button" type="submit">${webLoading?'搜索新方向':'联网找选题'} ${icon('arrow')}</button></div></form><div class="search-options"><div class="search-suggestions"><span>试试</span>${['AI 做视频','咖啡店创业','婚礼布置','旅游','职场'].map(term=>`<button type="button" data-action="suggestion" data-query="${term}">${term}</button>`).join('')}</div><div class="search-period" aria-label="新闻搜索时间范围">${[['week','近 7 天'],['today','今天'],['all','不限时间']].map(([value,label])=>`<button type="button" data-action="period" data-period="${value}" aria-pressed="${searchPeriod===value}">${label}</button>`).join('')}</div></div><div class="search-footnote"><span>${webLoading?'正在联网检索相关内容…':'输入方向后按回车或点击搜索 · 查询公开新闻与网页'}</span>${query?'<button data-action="clear-search" type="button">查看今日 TOP 50</button>':''}</div></section>`;
 }
-function searchCandidates(today){
-  const current=radar?.day===today?radar:null;
-  return [...(searchIndex?.items||[]),...(current?.searchItems||current?.items||[]).map(item=>({...item,day:today,lastSeenAt:current.updatedAt}))];
+function webTopicCard(item,index){
+  const published=item.publishedAt?new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(item.publishedAt))+' 发布':'发布时间待核验';
+  return `<article class="radar-card"><div class="topic-meta"><span class="rank ${index<3?'top':''}">${String(index+1).padStart(2,'0')}</span><span class="category-tag">${esc(item.category)}</span><span class="format-tag">${esc(item.contentType)}</span><time class="topic-date" ${item.publishedAt?`datetime="${esc(item.publishedAt)}"`:''}>${published}</time></div><h3>${esc(item.title)}</h3><div class="angle"><small>创作切入 · 自动建议</small><p>${esc(item.angle)}</p></div><div class="source-links">${item.sources.map(source=>`<a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(source.name)} ${icon('external')}<small>查看原文来源</small></a>`).join('')}</div><div class="topic-actions"><span>${item.sources.length>1?item.sources.length+' 个来源同标题':item.kind==='news'?'新闻搜索推荐':'相关网页线索'}</span><button data-action="copy" data-index="${index}" aria-label="复制第${index+1}条选题">${icon('copy')}复制选题</button></div></article>`;
 }
 function topicCard(item,index,searching){
   const number=searching?index+1:item.rank;
@@ -37,21 +37,19 @@ function topicCard(item,index,searching){
 }
 function radarBody(){
   const today=shanghaiDay(),current=radar?.day===today?radar:null,items=current?.items||[],available=current?.sources?.filter(s=>s.status!=='unavailable').length||0;
-  const searching=!!query;
-  const allMatches=searching?searchTopics(searchCandidates(today),query,{today,period:searchPeriod,limit:Number.MAX_SAFE_INTEGER}):null;
-  const pool=searching?allMatches.items:items;
+  const searching=!!query,pool=searching?(webResult?.items||[]):items;
   if(category!=='全部'&&!pool.some(item=>item.category===category))category='全部';
-  const filtered=pool.filter(item=>category==='全部'||item.category===category),selected=searching?filtered.slice(0,100):filtered;
-  displayedTopics=selected;
+  const selected=pool.filter(item=>category==='全部'||item.category===category);displayedTopics=selected;
   const stateLabel=current?.updatedAt?`${time(current.updatedAt)} 获取 · 北京时间`:loading?'正在连接热榜来源':'等待重新获取';
   const filters=pool.length?`<div class="category-filter" aria-label="选题分类">${radarCategories.filter(c=>c==='全部'||pool.some(t=>t.category===c)).map(c=>`<button data-action="category" data-category="${c}" class="${category===c?'selected':''}" aria-pressed="${category===c}">${c}<span>${c==='全部'?pool.length:pool.filter(t=>t.category===c).length}</span></button>`).join('')}</div>`:'';
-  const heading=searching?`“${esc(query)}”相关热门选题 · ${filtered.length} 条`:category==='全部'?'今日综合 TOP '+items.length:category+' · '+selected.length+' 条';
   let content='';
-  if(loading&&!items.length&&!searching){content=`<div class="radar-loading" role="status"><span class="loading-orbit">${icon('radar')}</span><h2>正在搜集今天值得聊的事</h2><p>连接公开榜单、合并同标题、自动分类…</p></div>`;}
+  if(searching&&webLoading){content=`<div class="radar-loading" role="status"><span class="loading-orbit">${icon('search')}</span><h2>正在网上寻找“${esc(query)}”</h2><p>检索相关来源、核对时间、整理选题…</p></div>`;}
+  else if(searching&&webError){content=`<div class="search-empty" role="alert"><h3>这次联网搜索没有完成</h3><p>${esc(webError)}。请重试，或直接打开新闻搜索查看。</p><button class="button" data-action="retry-search">重新联网搜索</button> <a class="button" href="https://news.google.com/search?q=${encodeURIComponent(query)}&hl=zh-CN&gl=CN&ceid=CN%3Azh-Hans" target="_blank" rel="noopener noreferrer">打开新闻搜索 ↗</a></div>`;}
   else if(searching||items.length){
-    content=`${filters}<div class="results-heading" aria-live="polite"><h2>${heading}</h2><small>${searching?'标题相关度优先，再看日期与平台名次':'分类依据：平台标签与标题关键词'}</small></div>${searching&&allMatches.expandedKeywords.length?`<p class="search-expanded">同时匹配：${allMatches.expandedKeywords.map(esc).join('、')}</p>`:''}<div class="radar-grid">${selected.map((item,index)=>topicCard(item,index,searching)).join('')}</div>${!selected.length?`<div class="search-empty" role="status">${indexPromise||loading?`<h3>正在查找相关热点…</h3>`:`<h3>暂未收录与“${esc(query)}”相关的热点</h3><p>可以换一个更宽泛的方向；多个关键词用空格分开，例如“AI 职场”。${searchPeriod==='today'?'也可以切换到近 7 天。':''}</p><button class="button" data-action="clear-search">查看今日 TOP 50</button>`}</div>`:''}${searching&&filtered.length>100?'<p class="notice">先显示前 100 条相关结果，可以补充关键词或选择分类缩小范围。</p>':''}${!searching&&items.length<RADAR_TOPIC_LIMIT?`<div class="notice">本次仅取得 ${items.length} 条有效选题，未用旧日期内容补足。</div>`:''}`;
-  }else{content=`<div class="radar-loading unavailable"><span class="loading-orbit">${icon('radar')}</span><h2>暂时没有取得今天的热榜</h2><p>请检查网络后重试，也可以从下方直接查看平台榜单。</p><button class="button" data-action="refresh">重新获取</button></div>`;}
-  return `<section class="radar-page"><div class="radar-heading"><div><div class="eyebrow">DAILY TOPIC RADAR <span class="date">${dayLabel(today)}</span></div><h1>今天，<em>值得聊什么？</em></h1><p>综合公开热榜 · ${RADAR_TOPIC_LIMIT} 个热点选题 · 自动分类</p></div><button class="button refresh" data-action="refresh" ${loading?'disabled':''}>${icon('refresh')}${loading?'正在更新':'刷新热榜'}</button></div><div class="radar-meta"><span class="connection ${available?'connected':''}"><i></i>${stateLabel}</span><span>${available?`${available} 个可用来源`:'百度 · 今日头条 · 微博'}</span></div>${searchPanel()}${loadError?`<div class="notice error" role="alert">${esc(loadError)}${items.length?'，下面保留今天已获取的内容。':'，可以刷新重试。'}</div>`:''}${indexError&&searching?`<div class="notice" role="status">${esc(indexError)}${searchIndex?'，保留上次已读取的历史记录。':'，当前仅搜索今天已取得的热榜。'}</div>`:''}${current?.status==='partial'?`<div class="notice">${current.sources.some(s=>s.status==='cached')?'部分来源更新失败，已标注并保留今天的缓存。':'部分来源暂不可用，下面根据已获取的公开热榜整理。'}</div>`:''}${current?.cacheSaved===false?'<div class="notice">热榜已获取，但本机快照未保存成功。</div>':''}${content}${current?`<details class="radar-method"><summary>来源与排序说明</summary><div class="source-statuses">${current.sources.map(s=>`<div><a href="${esc(s.boardURL)}" target="_blank" rel="noopener noreferrer">${esc(s.name)} ↗</a><span class="${s.status==='unavailable'?'muted':''}">${sourceStatus(s)}${s.fetchedAt?' · '+time(s.fetchedAt):''}</span>${s.error?`<small>${esc(s.error)}</small>`:''}</div>`).join('')}</div><p>仅对已接入来源排序，不代表全网绝对排名。同标题合并，跨平台上榜优先；按各榜名次加权排序，不直接比较不同平台的热度数值。不同写法的同一事件可能未合并。</p><p>方向搜索使用标题、分类和相关词，范围为全部已收录热榜及近 7 天记录，结果标注实际上榜日期。同标题展示最近一次上榜信息，来源名次为该次收录的名次；没有收录的内容不会编造成热点。多个关键词用空格分开时需同时相关。</p><p>日期按北京时间计算。${radarRefreshNote}热度是选题参考，成片表现取决于创作。分类与创作角度为自动建议，信息请以原始来源为准。</p></details>`:''}</section>`;
+    const heading=searching?`“${esc(query)}” · 找到 ${selected.length} 条选题线索`:category==='全部'?'今日综合 TOP '+items.length:category+' · '+selected.length+' 条';
+    content=`${searching&&webResult?.notice?`<div class="notice" role="status">${esc(webResult.notice)}</div>`:''}${filters}<div class="results-heading" aria-live="polite"><h2>${heading}</h2><small>${searching?`联网检索 · ${time(webResult?.searchedAt)}${webResult?.cached?' · 2 分钟内搜索缓存':''}`:'分类依据：平台标签与标题关键词'}</small></div><div class="radar-grid">${selected.map((item,index)=>searching?webTopicCard(item,index):topicCard(item,index,false)).join('')}</div>${!selected.length?`<div class="search-empty" role="status"><h3>暂时没有找到相关内容</h3><p>试试更具体的关键词，或选择“不限时间”继续查找。</p><button class="button" data-action="retry-search">重新搜索</button></div>`:''}${searching?'<p class="search-expanded">按新闻搜索相关性整理；网页线索不代表已证实爆款，未取得阅读或点赞数据。</p>':''}${!searching&&items.length<RADAR_TOPIC_LIMIT?`<div class="notice">本次仅取得 ${items.length} 条有效选题，未用旧日期内容补足。</div>`:''}`;
+  }else{content=`<div class="radar-loading ${loading?'':'unavailable'}" role="status"><span class="loading-orbit">${icon('radar')}</span><h2>${loading?'正在搜集今天值得聊的事':'暂时没有取得今天的热榜'}</h2><p>${loading?'连接公开榜单、合并同标题、自动分类…':'可以使用上方联网搜索，或稍后刷新热榜。'}</p></div>`;}
+  return `<section class="radar-page"><div class="radar-heading"><div><div class="eyebrow">DAILY TOPIC RADAR <span class="date">${dayLabel(today)}</span></div><h1>今天，<em>值得聊什么？</em></h1><p>每日 50 条热点 · 按方向联网找选题 · 自动分类</p></div><button class="button refresh" data-action="refresh" ${loading?'disabled':''}>${icon('refresh')}${loading?'正在更新':'刷新热榜'}</button></div><div class="radar-meta"><span class="connection ${available?'connected':''}"><i></i>${stateLabel}</span><span>${available?`${available} 个可用来源`:'百度 · 今日头条 · 微博'}</span></div>${searchPanel()}${!searching&&loadError?`<div class="notice error" role="alert">${esc(loadError)}</div>`:''}${!searching&&current?.status==='partial'?'<div class="notice">部分热榜来源暂不可用，下面根据已获取的公开热榜整理。</div>':''}${content}<details class="radar-method"><summary>来源与排序说明</summary><p>方向搜索按提交的关键词即时请求新浪新闻搜索，覆盖多家媒体的相关报道，优先查所选时间范围的资讯。没有取得有效新闻时，会尝试其他新闻源与 Bing 网页搜索，并明确标注发布时间待核验。相同方向的搜索可能复用 2 分钟内的查询结果。</p><p>搜索结果独立于每日 50 条榜单，按搜索来源的相关性顺序整理，同标题合并。这些是选题线索，未取得全网播放、阅读或点赞数据，不作为“全网最热”的绝对排名。自动分类与创作切入仅供参考，请打开来源核实。</p>${current?`<div class="source-statuses">${current.sources.map(s=>`<div><a href="${esc(s.boardURL)}" target="_blank" rel="noopener noreferrer">${esc(s.name)} ↗</a><span>${sourceStatus(s)}${s.fetchedAt?' · '+time(s.fetchedAt):''}</span></div>`).join('')}</div><p>每日榜单合并接入平台的同标题内容，跨平台上榜优先，再按名次加权；仅代表已接入来源。日期按北京时间计算。${radarRefreshNote}</p>`:''}</details></section>`;
 }
 function render(){
   const input=$('#direction-query'),keepFocus=input&&document.activeElement===input,selection=keepFocus?[input.selectionStart,input.selectionEnd]:null;
@@ -73,40 +71,36 @@ async function loadRadar(force=false){
 }
 async function copyTopic(index){
   const item=displayedTopics[index];if(!item)return;
-  const text=`${item.title}\n类型：${item.category} / ${item.contentType}\n创作切入：${item.angle}\n${item.sources.map(s=>`${s.name} #${s.rank}：${s.url}`).join('\n')}\n上榜日期：${item.day||radar.day}（北京时间）`;
+  const text=`${item.title}\n类型：${item.category} / ${item.contentType}\n创作切入（自动建议）：${item.angle}\n${item.sources.map(s=>`${s.name}${s.rank?' #'+s.rank:''}：${s.url}`).join('\n')}\n${query?(item.publishedAt?'来源发布时间：'+item.publishedAt:'发布时间待核验'):'上榜日期：'+(item.day||radar.day)+'（北京时间）'}`;
   try{await navigator.clipboard.writeText(text);toast('选题和来源已复制');}catch{
     const dialog=$('#modal');dialog.innerHTML=`<h2>复制选题</h2><p>当前浏览器未允许自动复制，请选中文字复制。</p><textarea readonly aria-label="选题与来源">${esc(text)}</textarea><button class="button" data-action="close">完成</button>`;dialog.showModal();dialog.querySelector('textarea').select();
   }
 }
 document.addEventListener('click',async event=>{const target=event.target.closest('[data-action]');if(!target)return;const action=target.dataset.action;
-  if(action==='refresh')await Promise.all([loadRadar(true),query?loadSearchIndex(true):Promise.resolve()]);
+  if(action==='refresh')await loadRadar(true);
+  if(action==='retry-search')runWebSearch();
   if(action==='category'){category=target.dataset.category;render();}
   if(action==='copy')await copyTopic(Number(target.dataset.index));
   if(action==='suggestion'){searchDraft=target.dataset.query;applySearch();}
-  if(action==='period'){searchPeriod=target.dataset.period;category='全部';render();if(query)loadSearchIndex();}
-  if(action==='clear-search'){clearTimeout(searchTimer);searchDraft=query='';category='全部';render();}
+  if(action==='period'){searchPeriod=target.dataset.period;category='全部';if(query)runWebSearch();else render();}
+  if(action==='clear-search'){webController?.abort();searchSequence++;webLoading=false;webResult=null;webError='';searchDraft=query='';category='全部';render();}
   if(action==='close')$('#modal').close();
   if(action==='motion'){motion=!motion;localStorage.setItem('toolbox-online-motion',motion?'on':'off');document.body.classList.toggle('static',!motion);target.setAttribute('aria-label',motion?'暂停星空动效':'开启星空动效');target.title=target.getAttribute('aria-label');}
 });
-async function loadSearchIndex(force=false){
-  if(indexPromise)return indexPromise;
-  if(searchIndex&&!force&&Date.now()-lastIndexFetch<10*60*1000)return;
-  indexError='';
-  indexPromise=(async()=>{try{
-    const response=await fetch(new URL('./radar-search.json',import.meta.url),{cache:'no-store',signal:AbortSignal.timeout(15000)});
-    if(!response.ok)throw Error('近 7 天热点暂时未能读取');
-    const data=await response.json();if(data.version!==1||!Array.isArray(data.items)||!Array.isArray(data.days))throw Error('热点索引暂时不可用');
-    searchIndex=data;lastIndexFetch=Date.now();
-  }catch(error){indexError=error.name==='TimeoutError'?'读取历史热点超时':error.message;}finally{indexPromise=null;if(route==='radar')render();}})();
-  if(route==='radar')render();return indexPromise;
+async function runWebSearch(){
+  webController?.abort();const sequence=++searchSequence;
+  webResult=null;webError='';webLoading=true;category='全部';
+  const controller=new AbortController();webController=controller;
+  const timeout=setTimeout(()=>controller.abort('timeout'),25000);render();
+  try{const data=await fetchWebTopics(query,searchPeriod,{signal:controller.signal});if(sequence===searchSequence)webResult=data;}
+  catch(error){if(sequence===searchSequence)webError=controller.signal.aborted?'搜索等待超时，请重试':error.message==='Failed to fetch'?'暂时无法连接联网搜索服务，请检查网络':error.message;}
+  finally{clearTimeout(timeout);if(sequence===searchSequence){webLoading=false;webController=null;if(route==='radar')render();}}
 }
-function applySearch(){clearTimeout(searchTimer);query=searchDraft.trim().slice(0,80);category='全部';render();if(query)loadSearchIndex();}
+function applySearch(){query=searchDraft.trim().slice(0,80);category='全部';if(query)runWebSearch();else{webController?.abort();searchSequence++;webLoading=false;webResult=null;webError='';render();}}
 document.addEventListener('submit',event=>{if(event.target.id!=='direction-search')return;event.preventDefault();searchDraft=$('#direction-query').value;applySearch();});
-document.addEventListener('compositionstart',event=>{if(event.target.id==='direction-query'){composing=true;clearTimeout(searchTimer);}});
-document.addEventListener('compositionend',event=>{if(event.target.id==='direction-query'){composing=false;searchDraft=event.target.value;clearTimeout(searchTimer);searchTimer=setTimeout(applySearch,350);}});
-document.addEventListener('input',event=>{if(event.target.id!=='direction-query')return;searchDraft=event.target.value;clearTimeout(searchTimer);if(!composing&&!event.isComposing)searchTimer=setTimeout(applySearch,350);});
+document.addEventListener('input',event=>{if(event.target.id!=='direction-query')return;searchDraft=event.target.value;if(!searchDraft)applySearch();});
 window.addEventListener('hashchange',()=>{route=location.hash==='#radar'?'radar':'home';category='全部';render();window.scrollTo(0,0);if(route==='radar')loadRadar();});
-function checkFresh(){if(document.hidden||route!=='radar')return;if(!radar||radar.day!==shanghaiDay()||Date.now()-lastClientFetch>10*60*1000)loadRadar();if(query)loadSearchIndex();}
+function checkFresh(){if(document.hidden||route!=='radar')return;if(!radar||radar.day!==shanghaiDay()||Date.now()-lastClientFetch>10*60*1000)loadRadar();}
 document.addEventListener('visibilitychange',checkFresh);window.addEventListener('focus',checkFresh);setInterval(checkFresh,60000);
 function starfield(){const canvas=$('#stars'),ctx=canvas.getContext('2d'),reduced=matchMedia('(prefers-reduced-motion: reduce)');let stars=[],w,h,last=0;
   function resize(){w=innerWidth;h=innerHeight;const scale=Math.min(devicePixelRatio,2);canvas.width=w*scale;canvas.height=h*scale;ctx.setTransform(scale,0,0,scale,0,0);stars=Array.from({length:Math.min(110,Math.round(w/12))},(_,i)=>({x:(i*157.71)%w,y:(i*i*21.31)%h,r:i%9===0?1.35:.6,p:i*1.3}));}resize();addEventListener('resize',resize);
