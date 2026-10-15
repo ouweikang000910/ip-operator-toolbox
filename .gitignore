@@ -1,0 +1,6 @@
+dist/
+.radar-cache/
+node_modules/
+.env
+data/
+test-results/
