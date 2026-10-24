@@ -1,0 +1,537 @@
+/* Approved neon Halloween theme. Ornament stays outside data and form content. */
+:root {
+  --neon: #e91cff;
+  --orange: #ff8024;
+  --accent-gradient: linear-gradient(
+    110deg,
+    #ff8b18 0%,
+    #ff3d79 48%,
+    #ce00fa 100%
+  );
+}
+body {
+  background:
+    radial-gradient(ellipse at 85% 0%, #210c321f, transparent 55%), var(--bg);
+}
+::selection {
+  background: #922bc5;
+  color: white;
+}
+.sidebar {
+  background: linear-gradient(180deg, #0d0918, #0a0813);
+  border-right-color: #7d2294;
+  overflow: hidden;
+  box-shadow: inset -1px 0 0 #f119ff15;
+}
+.sidebar > :not(.sidebar-pattern) {
+  position: relative;
+  z-index: 1;
+}
+.sidebar-pattern {
+  position: absolute;
+  inset: auto -70px -80px -130px;
+  height: 300px;
+  background: url("../public/theme/neon-pattern.svg") center/auto 360px
+    no-repeat;
+  opacity: 0.9;
+  pointer-events: none;
+  mask-image: linear-gradient(transparent, #000 65%);
+}
+.brand-symbol {
+  background: linear-gradient(145deg, #be00ff, #ff12bf 50%, #ff8526);
+  color: #160621;
+  box-shadow: 0 0 22px #da00fb36;
+  border: 1px solid #ff58de;
+}
+.brand {
+  color: #fff;
+}
+.brand small {
+  color: #c0accd;
+}
+.workspace-label,
+.local-card {
+  background: linear-gradient(135deg, #191125f5, #100c1df5);
+  border-color: #433052;
+  backdrop-filter: blur(8px);
+}
+.workspace-label small,
+.local-card p {
+  color: #a79ab8;
+}
+nav button,
+.settings-nav {
+  color: #c4b9d6;
+  border: 1px solid transparent;
+}
+nav button:hover,
+.settings-nav:hover {
+  background: #40145180;
+  border-color: #622d78;
+}
+nav button.active,
+.settings-nav.active {
+  color: #fff;
+  background: linear-gradient(115deg, #b300d5, #65119c);
+  border-color: #f63aff;
+  box-shadow:
+    inset 0 0 18px #ff00f238,
+    0 0 12px #b000ff2c;
+}
+nav button.active svg {
+  color: #ffd7ff;
+}
+.nav-count {
+  background: #170c238c;
+  color: #e7d5f5;
+}
+.nav-label {
+  color: #a094b7;
+}
+.profile {
+  border-color: #713481;
+  background: #110b1dde;
+  padding-left: 8px;
+  padding-right: 8px;
+  border-radius: 10px 10px 0 0;
+}
+.profile small,
+.version {
+  color: #a399b6;
+}
+.settings-nav {
+  background: #100a1dd9;
+}
+.topbar {
+  background: #0c0915c9;
+  border-color: #32203e;
+}
+.topbar .top-status {
+  color: #bab2c8;
+}
+.avatar {
+  background: #21152f;
+  border-color: #4c325f;
+  color: #d9c5ef;
+}
+.avatar.purple {
+  background: linear-gradient(140deg, #b10acc, #672f9d);
+  border-color: #d84be5;
+  color: #fff;
+}
+.content {
+  padding-top: 24px;
+}
+.eyebrow {
+  color: #d78aff;
+}
+.eyebrow span {
+  color: #9b70ba;
+}
+.btn {
+  background: #24172f;
+  border-color: #674477;
+  color: #eee1fa;
+}
+.btn:hover {
+  background: #3b1e4e;
+  border-color: #d64ce9;
+}
+.btn.primary {
+  background: var(--accent-gradient);
+  border-color: #ff76d1;
+  color: white;
+  box-shadow: 0 3px 20px #ed12ca26;
+  text-shadow: 0 1px 3px #790c5b80;
+}
+.btn.primary:hover {
+  background: linear-gradient(110deg, #ff9e32, #ff538e 48%, #e12bff);
+  box-shadow: 0 3px 25px #ed12ca47;
+}
+.neon-hero {
+  position: relative;
+  isolation: isolate;
+  min-height: 190px;
+  padding: 30px 27px;
+  margin-bottom: 24px;
+  border: 2px solid #fa651d;
+  outline: 1px solid #a700fb;
+  outline-offset: 3px;
+  background: #090711;
+  box-shadow:
+    inset 0 0 0 5px #0c0715,
+    inset 0 0 0 6px #bd14ed,
+    0 0 30px #7909bf13;
+  overflow: hidden;
+}
+.neon-hero::after {
+  content: "";
+  position: absolute;
+  inset: 11px;
+  z-index: -1;
+  pointer-events: none;
+  border-top: 1px solid #fb21cd;
+  border-bottom: 1px solid #ff8a28;
+}
+.hero-pattern {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  pointer-events: none;
+  background: url("../public/theme/neon-pattern.svg") right center/auto 290px
+    no-repeat;
+}
+.neon-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    90deg,
+    #080711f5 0%,
+    #080711ed 35%,
+    #080711a8 53%,
+    #08071115 76%
+  );
+  pointer-events: none;
+}
+.neon-hero .heading {
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+.neon-hero h1 {
+  font-size: clamp(24px, 2.35vw, 36px);
+  font-weight: 700;
+  letter-spacing: -1px;
+  line-height: 1.5;
+  text-shadow: 0 2px 14px #080711;
+}
+.neon-hero .heading p {
+  color: #cec3db;
+}
+.neon-hero > .btn {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  box-shadow:
+    0 0 0 7px #0a0718c9,
+    0 0 22px #f30acf3d;
+}
+.hero-star {
+  position: absolute;
+  z-index: 2;
+  color: #ff8a21;
+  line-height: 1;
+  font-size: 36px;
+  pointer-events: none;
+  text-shadow: 0 0 12px #ff4c1666;
+}
+.star-start {
+  top: 0;
+  left: 1px;
+}
+.star-end {
+  bottom: 0;
+  right: 1px;
+}
+.panel {
+  background: linear-gradient(135deg, #151020, #0e0c19);
+  border-color: #60316c;
+}
+.stat {
+  background: linear-gradient(120deg, #171022, #100d1d);
+  border-color: #b62acb;
+  box-shadow: inset 0 1px 0 #ff71ee10;
+}
+.stat:nth-child(2) {
+  border-color: #ac3a7e;
+}
+.stat-label {
+  color: #d1bedc;
+}
+.stat-label > span {
+  color: #f348fa;
+  filter: drop-shadow(0 0 5px #ee12d540);
+}
+.stat:nth-child(2) .stat-label > span {
+  color: #ff8a2d;
+}
+.stat strong {
+  font-size: 35px;
+  font-weight: 650;
+  color: #fff;
+}
+.stat small {
+  color: #a296b1;
+}
+.trend-panel {
+  border-color: #8e2ea3;
+}
+.panel-head p,
+.chart-note {
+  color: #a89bb8;
+}
+.chart-note > span:last-child {
+  color: #a194b0;
+}
+.legend-dot {
+  background: #f22fff;
+  box-shadow: 0 0 7px #de1fff70;
+}
+.chip {
+  background: #45114f55;
+  border-color: #a82dbc;
+  color: #f0baff;
+}
+.chart-empty span {
+  background: #100c1ceb;
+  color: #d2b8e6;
+}
+.chart-empty small {
+  color: #a89ab7;
+}
+.grid-lines {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 39px,
+    #6f398b40 40px,
+    transparent 41px
+  );
+}
+.focus-panel {
+  background:
+    radial-gradient(ellipse at 65% 35%, #53146940, transparent 70%), #100c1c;
+  border-color: #d72de7;
+}
+.focus-panel .panel-head h2 {
+  font-size: 13px;
+}
+.orbit-art {
+  height: 145px;
+  background: url("../public/theme/neon-pattern.svg") center/auto 170px
+    no-repeat;
+  max-width: none;
+  margin: 6px 10px;
+}
+.orbit {
+  display: none;
+}
+.orbit-center {
+  z-index: 1;
+  width: 95px;
+  height: 68px;
+  border: 3px solid #f549ff;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #2c0c41, #13081c);
+  color: #fa36ee;
+  box-shadow:
+    0 0 0 5px #0c0716,
+    0 0 25px #c500ff55;
+  transform: rotate(-10deg);
+}
+.orbit-center svg {
+  filter: drop-shadow(0 0 7px #ff27d9);
+  stroke: #ffb6fa;
+  stroke-width: 1;
+}
+.orbit-tag {
+  display: none;
+}
+.orbit-spark {
+  right: 15px;
+  top: 12px;
+  color: #ff8b2c;
+  text-shadow: 0 0 10px #ff4e2355;
+  font-size: 28px;
+}
+.focus-panel > .text-action {
+  color: #fff;
+  background: var(--accent-gradient);
+  padding: 9px 15px;
+  border-radius: 8px;
+  border: 1px solid #f765ef;
+}
+.focus-panel > p {
+  color: #b7a9c6;
+}
+.text-action {
+  color: #e8a1fc;
+}
+.text-action.muted {
+  color: #b9a8ca;
+}
+.count {
+  background: #2c1537;
+  color: #e9bcfa;
+}
+thead {
+  background: #1d1129;
+}
+tbody tr:hover {
+  background: #261332;
+}
+input,
+textarea,
+select {
+  background: #100c1c;
+  border-color: #50315e;
+  color: #f2e7fb;
+}
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #e845f6;
+  box-shadow: 0 0 0 3px #c900f21c;
+}
+input::placeholder,
+textarea::placeholder {
+  color: #8d7c9d;
+}
+input[type="checkbox"] {
+  accent-color: #dc28ee;
+}
+.drop-zone {
+  background:
+    radial-gradient(ellipse at center, #6b17622b, transparent 80%), #110c1c;
+  border-color: #9135a2;
+}
+.drop-zone.dragging {
+  background: #3e164f;
+  border-color: #ff7aeb;
+}
+.upload-icon {
+  background: #3c164c;
+  border-color: #b445c4;
+  color: #f58dff;
+}
+.ocr-upload {
+  background: #281235;
+  border-color: #9b39b0;
+  color: #e6b4f7;
+}
+.cover-upload {
+  background: #20122d;
+  border-color: #664079;
+}
+.tabs button.active {
+  color: #f39fff;
+  border-color: #ec32ff;
+}
+.progress-bar i {
+  background: var(--accent-gradient);
+}
+.modal {
+  background: #150f20;
+  border-color: #9b4aaf;
+}
+.toast {
+  background: #281033;
+  border-color: #d546ed;
+  color: #f4ddff;
+}
+.login-screen {
+  background:
+    radial-gradient(ellipse at center, #090711aa, #090711e8),
+    url("../public/theme/neon-pattern.svg") center/cover fixed;
+}
+.login-screen > .panel {
+  border-color: #df28f8;
+  background: #110b1eea;
+  box-shadow: 0 0 60px #b800e01c;
+}
+a:focus-visible {
+  outline: 2px solid #f783ff;
+  outline-offset: 4px;
+}
+@media (min-width: 1500px) {
+  .neon-hero {
+    min-height: 210px;
+  }
+  .hero-pattern {
+    background-size: auto 350px;
+  }
+}
+@media (max-width: 1100px) {
+  .neon-hero {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 20px;
+    padding: 26px;
+  }
+  .neon-hero > .btn {
+    align-self: flex-start;
+  }
+  .neon-hero h1 {
+    font-size: 28px;
+  }
+  .hero-pattern {
+    background-position: 110% center;
+  }
+  .neon-hero::before {
+    background: linear-gradient(90deg, #080711f2, #080711bf 55%, #08071126);
+  }
+}
+@media (max-width: 700px) {
+  .content {
+    padding-top: 20px;
+  }
+  .sidebar-pattern {
+    display: none;
+  }
+  .sidebar {
+    overflow: visible;
+  }
+  .neon-hero {
+    padding: 28px 20px 23px;
+    min-height: 230px;
+    margin: 4px 3px 25px;
+  }
+  .neon-hero h1 {
+    font-size: 26px;
+    letter-spacing: -0.6px;
+    max-width: 330px;
+  }
+  .neon-hero .heading p {
+    font-size: 11px;
+    max-width: 270px;
+  }
+  .hero-pattern {
+    background-position: 57% center;
+    background-size: auto 270px;
+    opacity: 0.75;
+  }
+  .neon-hero::before {
+    background: linear-gradient(90deg, #080711ec, #080711a8 72%, #08071166);
+  }
+  .neon-hero > .btn {
+    box-shadow: 0 0 0 4px #0a071899;
+  }
+  .stat strong {
+    font-size: 30px;
+  }
+  .stat small {
+    font-size: 9px;
+  }
+  .profile {
+    background: none;
+  }
+  .settings-nav {
+    background: transparent;
+  }
+}
+@media (max-width: 900px) {
+  .sidebar nav button,
+  .sidebar .settings-nav {
+    gap: 0;
+    min-width: 0;
+    width: 100%;
+    padding: 12px 0;
+  }
+}
+@media (max-width: 700px) {
+  .neon-hero h1 {
+    text-wrap: balance;
+  }
+}

@@ -1,0 +1,14 @@
+import {mkdir,copyFile,readFile,writeFile} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+const root=fileURLToPath(new URL('../',import.meta.url));
+const out=path.join(root,'public/ocr');
+for(const folder of ['core','lang'])await mkdir(path.join(out,folder),{recursive:true});
+const source=rel=>path.join(root,'node_modules',rel);
+for(const f of ['tesseract.min.js','worker.min.js','tesseract.min.js.LICENSE.txt','worker.min.js.LICENSE.txt'])await copyFile(source('tesseract.js/dist/'+f),path.join(out,f));
+for(const f of ['tesseract-core-lstm.wasm.js','tesseract-core-simd-lstm.wasm.js'])await copyFile(source('tesseract.js-core/'+f),path.join(out,'core',f));
+await copyFile(source('tesseract.js-core/LICENSE'),path.join(out,'core/LICENSE'));
+await copyFile(source('tesseract.js/LICENSE.md'),path.join(out,'LICENSE.md'));
+for(const lang of ['eng','chi_sim'])await copyFile(source(`@tesseract.js-data/${lang}/4.0.0_best_int/${lang}.traineddata.gz`),path.join(out,'lang',lang+'.traineddata.gz'));
+await writeFile(path.join(out,'NOTICE.txt'),'OCR assets copied from locked npm packages: tesseract.js 6.0.1, tesseract.js-core 6.1.2, @tesseract.js-data/eng 1.0.0, @tesseract.js-data/chi_sim 1.0.0. Tesseract and its training data are Apache-2.0 licensed. See LICENSE.md and core/LICENSE. Assets are served from this site; no user media is sent to a CDN.\n');
+console.log('Prepared same-origin OCR engine and Chinese/English language data.');

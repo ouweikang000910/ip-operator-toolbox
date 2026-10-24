@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="380" viewBox="0 0 900 380" fill="none">
+<defs>
+ <linearGradient id="lava" x1="0" y1="0" x2=".75" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#ff8a12"/><stop offset=".36" stop-color="#ff4929"/><stop offset=".65" stop-color="#ff0ecf"/><stop offset="1" stop-color="#a700ff"/></linearGradient>
+ <linearGradient id="violet" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ef13ff"/><stop offset="1" stop-color="#7900ff"/></linearGradient>
+ <path id="bat" fill="#080611" d="M-56-14Q-37-8-21-28Q-18-9-8-6L-5-16 0-11 5-16 8-6Q18-9 21-28Q37-8 56-14Q39-2 39 16Q26 7 19 25Q10 11 0 31Q-10 11-19 25Q-26 7-39 16Q-39-2-56-14Z"/>
+ <path id="star" fill="#ff801d" d="m0-25 5 16 15-9-10 16 19 4-20 4 10 16-16-10-4 20-5-20-16 10 9-17-20-3 21-4-11-17 17 10Z"/>
+ <g id="web" stroke="#ae13ff" stroke-width="1.8" fill="none">
+  <path d="M0-110V110M-110 0H110M-78-78 78 78M-78 78 78-78"/>
+  <path d="M0-26Q6-16 18-18Q17-6 26 0Q17 7 18 18Q6 16 0 26Q-6 16-18 18Q-17 6-26 0Q-17-6-18-18Q-6-16 0-26ZM0-53Q13-32 37-37Q33-13 53 0Q33 13 37 37Q13 33 0 53Q-13 33-37 37Q-33 13-53 0Q-33-13-37-37Q-13-33 0-53ZM0-81Q20-50 57-57Q50-20 81 0Q50 20 57 57Q20 50 0 81Q-20 50-57 57Q-50 20-81 0Q-50-20-57-57Q-20-50 0-81ZM0-110Q27-67 78-78Q67-27 110 0Q67 27 78 78Q27 67 0 110Q-27 67-78 78Q-67 27-110 0Q-67-27-78-78Q-27-67 0-110Z"/>
+ </g>
+</defs>
+<!-- Organic ribbons are independent of the UI; no text or data baked into the artwork. -->
+<g fill="url(#lava)">
+ <path d="M160-35C129 3 188 10 178 41C165 80 222 96 262 70C298 47 272 20 237 21C207 22 226-4 242-17Z"/>
+ <path d="M345-21C302 5 307 55 353 67C405 80 406 119 451 100C492 83 454 44 409 42C373 40 412 8 401-19Z"/>
+ <path d="M584-36C515-3 503 32 546 54C581 71 614 60 628 86C647 125 717 104 702 61C692 33 645 42 631 17C617-9 651-19 650-35Z"/>
+ <path d="M790-24C733 24 758 68 815 78C852 84 824 114 849 139C889 174 928 126 897 95C866 62 887 27 853-2Z"/>
+ <path d="M192 124C129 106 107 143 140 174C173 203 212 184 219 211C232 259 290 267 315 233C345 194 281 167 245 169C216 169 229 135 192 124Z"/>
+ <path d="M417 151C359 107 326 154 355 185C377 210 421 200 421 233C422 286 508 290 514 250C521 208 465 217 459 189C455 168 438 164 417 151Z"/>
+ <path d="M599 138C562 129 530 170 565 195C591 213 623 196 648 226C679 266 734 238 714 202C696 171 665 184 646 167C628 150 619 143 599 138Z"/>
+ <path d="M810 235C774 211 741 251 762 278C788 310 821 300 819 334C815 385 882 395 905 360L932 302C883 314 864 270 810 235Z"/>
+ <path d="M140 306C101 283 79 323 111 347C137 366 173 343 176 377L247 398C251 360 225 337 191 343C158 348 172 323 140 306Z"/>
+ <path d="M353 295C296 278 261 324 296 348C319 365 349 352 367 372C390 401 444 394 455 362C469 322 409 343 398 321C389 304 372 298 353 295Z"/>
+ <path d="M576 289C531 259 497 286 517 316C532 341 569 327 579 350C592 378 625 369 644 397L724 402C722 364 679 333 650 343C618 354 611 312 576 289Z"/>
+</g>
+<g fill="url(#violet)"><path d="M50 33C20 63 72 69 73 89C80 116 106 109 100 87C92 58 49 63 50 33Z"/><path d="M270 97C285 118 270 140 290 153C326 172 337 151 315 140C296 131 308 97 270 97Z"/><path d="M476 111C441 119 452 136 481 140C505 146 501 172 516 177C544 183 531 146 517 139C503 130 479 131 476 111Z"/><path d="M718 282C685 267 668 291 689 305C705 317 726 309 733 329C751 361 775 342 759 325C749 314 732 291 718 282Z"/></g>
+<use href="#web" transform="translate(733 124) rotate(10) scale(.77)"/>
+<use href="#web" transform="translate(334 259) rotate(-13) scale(.64)"/>
+<use href="#web" transform="translate(118 265) rotate(5) scale(.59)"/>
+<use href="#web" transform="translate(538 383) scale(.7)"/>
+<g><use href="#bat" transform="translate(229 43) rotate(-12) scale(.65)"/><use href="#bat" transform="translate(402 65) rotate(17) scale(.75)"/><use href="#bat" transform="translate(629 50) rotate(-12) scale(.85)"/><use href="#bat" transform="translate(853 95) rotate(22) scale(.7)"/><use href="#bat" transform="translate(237 213) rotate(18) scale(.8)"/><use href="#bat" transform="translate(448 244) rotate(-14) scale(.75)"/><use href="#bat" transform="translate(648 201) rotate(9) scale(.8)"/><use href="#bat" transform="translate(354 340) rotate(12) scale(.7)"/><use href="#bat" transform="translate(846 322) rotate(-15) scale(.9)"/></g>
+<g><use href="#star" transform="translate(318 91) scale(.7)"/><use href="#star" transform="translate(477 27) scale(.6)"/><use href="#star" transform="translate(553 107) scale(.8)"/><use href="#star" transform="translate(767 202) scale(.7)"/><use href="#star" transform="translate(532 247) scale(.7)"/><use href="#star" transform="translate(641 292) scale(.65)"/><use href="#star" transform="translate(260 292) scale(.55)"/><use href="#star" transform="translate(96 139) scale(.5)"/><use href="#star" transform="translate(864 210) scale(.65)"/></g>
+<g fill="#ff13dc"><circle cx="296" cy="29" r="5"/><circle cx="690" cy="18" r="7"/><circle cx="380" cy="115" r="6"/><circle cx="578" cy="238" r="5"/><circle cx="694" cy="272" r="6"/><circle cx="791" cy="154" r="6"/><circle cx="214" cy="293" r="4"/><circle cx="469" cy="310" r="5"/></g>
+<g fill="#ff831b"><circle cx="449" cy="128" r="5"/><circle cx="573" cy="71" r="4"/><circle cx="864" cy="176" r="5"/><circle cx="750" cy="350" r="6"/><circle cx="298" cy="185" r="5"/><circle cx="158" cy="100" r="4"/><circle cx="690" cy="327" r="4"/></g>
+</svg>

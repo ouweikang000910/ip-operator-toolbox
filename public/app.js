@@ -12,6 +12,7 @@ const onlineTools=[
   {name:'长视频切片助手',label:'一场长谈，几段好内容',icon:'film',description:'围绕完整话题整理访谈，预览片段、调整切点，导出字幕与剪辑清单。让每一段，都有始有终。',url:'https://ouweikang000910.github.io/-/yiduan/',action:'打开一段切片助手',type:'在线工具'},
   {name:'气口剪辑',label:'让表达，一气呵成',icon:'scissors',description:'打开气口剪辑小工具，让口播节奏更自然，把时间留给内容本身。',url:'https://breath-cut-ou-1014.wuliaowei2077.chatgpt.site/',action:'打开气口剪辑',type:'在线工具'},
   {name:'净帧去水印',label:'让好画面，回归干净',icon:'star',description:'图片、视频水印区域修补，支持模糊遮盖与裁剪。素材在浏览器本地处理，预览后直接导出。',url:'https://ouweikang000910.github.io/clearframe-studio/',action:'打开净帧去水印',type:'本地处理'},
+  {name:'AI 视频复盘官',label:'让每一条视频，都成为经验',icon:'film',description:'导入原片、识别运营截图，查看真实关键帧、数据报告和历史对比。无需登录，资料保存在你的浏览器。',url:'./video-review/',action:'开始视频复盘',type:'本地复盘',internal:true},
   {name:'视频镜头库',label:'给下一个画面，一点灵感',icon:'film',description:'查看镜头与动效参考，找到适合你的视频表达。',url:'https://ouweikang000910.github.io/-/',action:'浏览视频镜头库',type:'在线镜头库'}
 ];
 let route=location.hash==='#radar'?'radar':'home',category='全部',radar=null,loading=false,requestPromise=null,loadError='',lastClientFetch=0;
@@ -20,7 +21,7 @@ let motion=localStorage.getItem('toolbox-online-motion')!=='off';
 const time=value=>value?new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(value)):'—';
 const dayLabel=day=>day?.replace(/^(\d+)-(\d+)-(\d+)$/,'$1 年 $2 月 $3 日')||'';
 function toast(text){$('#toast').textContent=text;$('#toast').classList.add('visible');clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('#toast').classList.remove('visible'),3000);}
-function home(){return `<section class="home-hero"><div class="eyebrow"><span></span> A SMALL SPACE FOR BIG IDEAS</div><h1>少一点繁琐，<br><em>多一点创作。</em></h1><p>找选题、拆商单、切访谈、剪口播、去水印、看镜头。<br class="mobile-break">常用的创作工具，都放在这里。</p><span class="hero-star">✦</span></section><section class="online-grid" aria-label="在线工具">${onlineTools.map((t,i)=>`<a class="online-card ${t.featured?'featured':''}" href="${t.url}" ${t.internal?'':'target="_blank" rel="noopener noreferrer"'}><div class="card-top"><span class="tool-icon">${icon(t.icon)}</span><span class="tool-type">${t.type}</span></div><small class="card-kicker">${t.label}</small><h2>${t.name}</h2><p>${t.description}</p><span class="card-action">${t.action}${icon(t.internal?'arrow':'external')}</span></a>`).join('')}</section><p class="home-footnote">一个入口，接着做你的创作。<span>✦</span></p>`;}
+function home(){return `<section class="home-hero"><div class="eyebrow"><span></span> A SMALL SPACE FOR BIG IDEAS</div><h1>少一点繁琐，<br><em>多一点创作。</em></h1><p>找选题、拆商单、切访谈、剪口播、去水印、做复盘、看镜头。<br class="mobile-break">常用的创作工具，都放在这里。</p><span class="hero-star">✦</span></section><section class="online-grid" aria-label="在线工具">${onlineTools.map((t,i)=>`<a class="online-card ${t.featured?'featured':''}" href="${t.url}" ${t.internal?'':'target="_blank" rel="noopener noreferrer"'}><div class="card-top"><span class="tool-icon">${icon(t.icon)}</span><span class="tool-type">${t.type}</span></div><small class="card-kicker">${t.label}</small><h2>${t.name}</h2><p>${t.description}</p><span class="card-action">${t.action}${icon(t.internal?'arrow':'external')}</span></a>`).join('')}</section><p class="home-footnote">一个入口，接着做你的创作。<span>✦</span></p>`;}
 function sourceStatus(s){return s.status==='live'?'已获取':s.status==='cached'?'使用今日缓存':'暂不可用';}
 function heat(value){const number=Number(value);if(!Number.isFinite(number)||number<=0)return '';return number>=10000?(number/10000).toFixed(1)+'万':number.toLocaleString('zh-CN');}
 function searchPanel(){
@@ -107,3 +108,4 @@ function starfield(){const canvas=$('#stars'),ctx=canvas.getContext('2d'),reduce
   function frame(t){requestAnimationFrame(frame);if(document.hidden||t-last<45)return;last=t;ctx.clearRect(0,0,w,h);const still=!motion||reduced.matches;for(const s of stars){ctx.globalAlpha=.18+.38*(still?.65:(Math.sin(t/2600+s.p)+1)/2);ctx.fillStyle=s.r>1?'#f0d3a0':'#b9edff';ctx.beginPath();ctx.arc(s.x,s.y+(still?0:Math.sin(t/8000+s.p)*7),s.r,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;}requestAnimationFrame(frame);
 }
 render();starfield();if(route==='radar')loadRadar();
+
