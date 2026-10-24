@@ -21,7 +21,10 @@ let motion=localStorage.getItem('toolbox-online-motion')!=='off';
 const time=value=>value?new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(value)):'—';
 const dayLabel=day=>day?.replace(/^(\d+)-(\d+)-(\d+)$/,'$1 年 $2 月 $3 日')||'';
 function toast(text){$('#toast').textContent=text;$('#toast').classList.add('visible');clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('#toast').classList.remove('visible'),3000);}
-function home(){return `<section class="home-hero"><div class="eyebrow"><span></span> A SMALL SPACE FOR BIG IDEAS</div><h1>少一点繁琐，<br><em>多一点创作。</em></h1><p>找选题、拆商单、切访谈、剪口播、去水印、做复盘、看镜头。<br class="mobile-break">常用的创作工具，都放在这里。</p><span class="hero-star">✦</span></section><section class="online-grid" aria-label="在线工具">${onlineTools.map((t,i)=>`<a class="online-card ${t.featured?'featured':''}" href="${t.url}" ${t.internal?'':'target="_blank" rel="noopener noreferrer"'}><div class="card-top"><span class="tool-icon">${icon(t.icon)}</span><span class="tool-type">${t.type}</span></div><small class="card-kicker">${t.label}</small><h2>${t.name}</h2><p>${t.description}</p><span class="card-action">${t.action}${icon(t.internal?'arrow':'external')}</span></a>`).join('')}</section><p class="home-footnote">一个入口，接着做你的创作。<span>✦</span></p>`;}
+function home(){
+  const summaries={'每日选题雷达':'发现今天值得聊的事','商单要求拆解器':'把品牌需求变成执行清单','长视频切片助手':'把完整话题剪成好内容','气口剪辑':'让表达一气呵成','净帧去水印':'让好画面回归干净','AI 视频复盘官':'从真实数据中复盘每条视频','视频镜头库':'给下一个画面一点灵感'};
+  return `<section class="home-hero"><div class="hero-art" aria-hidden="true"></div><div class="hero-copy"><div class="eyebrow">A SMALL SPACE FOR BIG IDEAS</div><h1>少一点繁琐，<br><em>多一点创作。</em></h1><p>找选题、拆商单、切访谈、剪口播、去水印、做复盘、看镜头。<br>常用的创作工具，都放在这里。</p><a class="create-button" href="#tools" data-action="tools">开始创作<span>${icon('arrow')}</span></a></div></section><section id="tools" class="tools-section" tabindex="-1" aria-labelledby="tools-heading"><div class="tools-heading"><h2 id="tools-heading">你的创作工具</h2><span class="heading-rule"></span><span class="tools-edition">${String(onlineTools.length).padStart(2,'0')} / CREATOR TOOLS</span></div><div class="tools-grid">${onlineTools.map((t,i)=>`<a class="tool-tile ${t.featured?'featured':''}" href="${t.url}" aria-label="${t.action}" ${t.internal?'':'target="_blank" rel="noopener noreferrer"'}><span class="tool-number">${String(i+1).padStart(2,'0')}</span><span class="tile-icon">${icon(t.icon)}</span><span class="tile-copy"><h3>${t.name}</h3><p>${summaries[t.name]||t.label}</p></span><span class="tile-arrow">${icon(t.internal?'arrow':'external')}</span></a>`).join('')}</div></section>`;
+}
 function sourceStatus(s){return s.status==='live'?'已获取':s.status==='cached'?'使用今日缓存':'暂不可用';}
 function heat(value){const number=Number(value);if(!Number.isFinite(number)||number<=0)return '';return number>=10000?(number/10000).toFixed(1)+'万':number.toLocaleString('zh-CN');}
 function searchPanel(){
@@ -55,7 +58,7 @@ function radarBody(){
 function render(){
   const input=$('#direction-query'),keepFocus=input&&document.activeElement===input,selection=keepFocus?[input.selectionStart,input.selectionEnd]:null;
   document.body.classList.toggle('static',!motion);
-  $('#app').innerHTML=`<div class="site-shell"><header class="site-header"><a href="#home" class="brand"><span class="brand-mark">${icon('star')}</span><span>IP 操盘工具箱<small>ONLINE CREATOR TOOLS</small></span></a><div class="header-actions">${route==='radar'?`<a class="back-link" href="#home">${icon('back')}返回工具箱</a>`:`<span class="header-label">${onlineTools.length} 个入口，开始创作</span>`}<button class="motion-button" data-action="motion" aria-label="${motion?'暂停':'开启'}星空动效" title="${motion?'暂停':'开启'}星空动效">${icon('moon')}</button></div></header><main id="content">${route==='radar'?radarBody():home()}</main><footer>留一点空间，给下一个好想法。<span>IP TOOLBOX · ONLINE EDITION</span></footer></div>`;
+  $('#app').innerHTML=`<div class="site-shell"><header class="site-header"><a href="#home" class="brand"><span class="brand-mark">${icon('star')}</span><span>IP 操盘工具箱</span></a><nav class="main-nav" aria-label="主导航"><a href="#home" class="${route==='home'?'active':''}" ${route==='home'?'aria-current="page"':''}>首页</a><a href="#tools" data-action="tools">全部工具</a></nav><div class="header-actions">${route==='radar'?`<a class="back-link" href="#home">${icon('back')}返回工具箱</a>`:`<span class="header-label">${String(onlineTools.length).padStart(2,'0')} TOOLS <i></i></span>`}<button class="motion-button" data-action="motion" aria-label="${motion?'暂停':'开启'}背景动效" title="${motion?'暂停':'开启'}背景动效">${icon('moon')}</button></div></header><main id="content">${route==='radar'?radarBody():home()}</main><footer>留一点空间，给下一个好想法。<span>IP TOOLBOX</span></footer></div>`;
   if(keepFocus){const next=$('#direction-query');if(next){next.focus({preventScroll:true});next.setSelectionRange(...selection);}}
 }
 async function loadRadar(force=false){
@@ -78,6 +81,7 @@ async function copyTopic(index){
   }
 }
 document.addEventListener('click',async event=>{const target=event.target.closest('[data-action]');if(!target)return;const action=target.dataset.action;
+  if(action==='tools'){event.preventDefault();if(route!=='home'){route='home';history.replaceState(null,'','#home');render();}$('#tools').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});$('#tools').focus({preventScroll:true});return;}
   if(action==='refresh')await loadRadar(true);
   if(action==='retry-search')runWebSearch();
   if(action==='category'){category=target.dataset.category;render();}
@@ -86,7 +90,7 @@ document.addEventListener('click',async event=>{const target=event.target.closes
   if(action==='period'){searchPeriod=target.dataset.period;category='全部';if(query)runWebSearch();else render();}
   if(action==='clear-search'){webController?.abort();searchSequence++;webLoading=false;webResult=null;webError='';searchDraft=query='';category='全部';render();}
   if(action==='close')$('#modal').close();
-  if(action==='motion'){motion=!motion;localStorage.setItem('toolbox-online-motion',motion?'on':'off');document.body.classList.toggle('static',!motion);target.setAttribute('aria-label',motion?'暂停星空动效':'开启星空动效');target.title=target.getAttribute('aria-label');}
+  if(action==='motion'){motion=!motion;localStorage.setItem('toolbox-online-motion',motion?'on':'off');document.body.classList.toggle('static',!motion);target.setAttribute('aria-label',motion?'暂停背景动效':'开启背景动效');target.title=target.getAttribute('aria-label');}
 });
 async function runWebSearch(){
   webController?.abort();const sequence=++searchSequence;
@@ -103,9 +107,4 @@ document.addEventListener('input',event=>{if(event.target.id!=='direction-query'
 window.addEventListener('hashchange',()=>{route=location.hash==='#radar'?'radar':'home';category='全部';render();window.scrollTo(0,0);if(route==='radar')loadRadar();});
 function checkFresh(){if(document.hidden||route!=='radar')return;if(!radar||radar.day!==shanghaiDay()||Date.now()-lastClientFetch>10*60*1000)loadRadar();}
 document.addEventListener('visibilitychange',checkFresh);window.addEventListener('focus',checkFresh);setInterval(checkFresh,60000);
-function starfield(){const canvas=$('#stars'),ctx=canvas.getContext('2d'),reduced=matchMedia('(prefers-reduced-motion: reduce)');let stars=[],w,h,last=0;
-  function resize(){w=innerWidth;h=innerHeight;const scale=Math.min(devicePixelRatio,2);canvas.width=w*scale;canvas.height=h*scale;ctx.setTransform(scale,0,0,scale,0,0);stars=Array.from({length:Math.min(110,Math.round(w/12))},(_,i)=>({x:(i*157.71)%w,y:(i*i*21.31)%h,r:i%9===0?1.35:.6,p:i*1.3}));}resize();addEventListener('resize',resize);
-  function frame(t){requestAnimationFrame(frame);if(document.hidden||t-last<45)return;last=t;ctx.clearRect(0,0,w,h);const still=!motion||reduced.matches;for(const s of stars){ctx.globalAlpha=.18+.38*(still?.65:(Math.sin(t/2600+s.p)+1)/2);ctx.fillStyle=s.r>1?'#f0d3a0':'#b9edff';ctx.beginPath();ctx.arc(s.x,s.y+(still?0:Math.sin(t/8000+s.p)*7),s.r,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;}requestAnimationFrame(frame);
-}
-render();starfield();if(route==='radar')loadRadar();
-
+render();if(route==='radar')loadRadar();
