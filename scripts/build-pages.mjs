@@ -7,7 +7,7 @@ import {buildVideoReview} from './build-video-review.mjs';
 export async function buildPages(output=path.resolve('dist')){
   const root=fileURLToPath(new URL('../',import.meta.url));
   await mkdir(output,{recursive:true});
-  for(const file of ['index.html','favicon.svg','app.js','radar-core.mjs','radar-search.mjs','web-search-client.mjs','style.css','theme-ember.css'])
+  for(const file of ['index.html','favicon.svg','app.js','radar-core.mjs','radar-search.mjs','web-search-client.mjs','style.css','theme-ember.css','radar-background.css'])
     await copyFile(path.join(root,'public',file),path.join(output,file));
   await cp(path.join(root,'public/assets'),path.join(output,'assets'),{recursive:true});
   await cp(path.join(root,'public/briefly'),path.join(output,'briefly'),{recursive:true});

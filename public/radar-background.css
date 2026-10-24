@@ -1,0 +1,48 @@
+/* Approved radar backdrop: slow, independent light fields; content stays still. */
+#scenery .radar-light-layer{display:none}
+body:has(.radar-page) #scenery{background:#07090c;overflow:hidden;pointer-events:none}
+body:has(.radar-page) #scenery .radar-light-layer{
+  display:block;position:absolute;inset:-7% -8%;pointer-events:none;
+  transform-origin:50% 80%;animation-timing-function:cubic-bezier(.45,0,.55,1);
+  animation-iteration-count:infinite;animation-fill-mode:both;
+}
+body:has(.radar-page) #scenery .radar-light-cool{
+  z-index:0;background:radial-gradient(ellipse 38% 44% at 79% 104%,#c4e6de 0%,#8dced8b8 25%,#31728f82 49%,#1133454a 68%,transparent 92%);
+  animation-name:radar-cool-flow;animation-duration:40s;
+}
+body:has(.radar-page) #scenery .radar-light-haze{
+  z-index:1;background:
+    radial-gradient(ellipse 46% 60% at -8% 99%,#b2b4bd 0%,#8c94a9 31%,#5c647b8c 53%,transparent 76%),
+    radial-gradient(ellipse 35% 35% at 21% 82%,#c92d253f,transparent 86%);
+  animation-name:radar-haze-flow;animation-duration:46s;
+}
+body:has(.radar-page) #scenery .radar-light-warm{
+  z-index:2;background:radial-gradient(ellipse 27% 32% at 35% 102%,#fff8e8 0%,#ffe4cd 16%,#ff8746 35%,#ee4421d6 56%,#7d1d1850 77%,transparent 100%);
+  animation-name:radar-warm-flow;animation-duration:32s;
+}
+/* Keep the reading area dark while the lower light fields move beneath it. */
+body:has(.radar-page) #scenery:before{
+  content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
+  background:linear-gradient(180deg,#07090cf5 0%,#07090ceb 18%,#07090c80 33%,#07090c10 53%,transparent 72%);
+}
+body:has(.radar-page) #scenery:after{
+  display:block;content:"";position:absolute;inset:0;z-index:4;pointer-events:none;opacity:.12;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.84' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='white' filter='url(%23n)' opacity='.8' d='M0 0h180v180H0z'/%3E%3C/svg%3E");
+  background-size:180px 180px;mix-blend-mode:soft-light;animation:none;transform:none;
+}
+@keyframes radar-warm-flow{
+  0%,100%{transform:translate3d(-1.5%,1%,0) scale(1.015);opacity:.94}
+  50%{transform:translate3d(3.5%,-2.6%,0) scale(1.045);opacity:1}
+}
+@keyframes radar-cool-flow{
+  0%,100%{transform:translate3d(1.5%,1.2%,0) scale(1.02);opacity:.94}
+  50%{transform:translate3d(-3.8%,-2.3%,0) scale(1.055);opacity:1}
+}
+@keyframes radar-haze-flow{
+  0%,100%{transform:translate3d(-.7%,.8%,0) scale(1.01);opacity:.9}
+  50%{transform:translate3d(1.5%,-1.1%,0) scale(1.035);opacity:1}
+}
+body.static:has(.radar-page) #scenery .radar-light-layer{animation-play-state:paused}
+@media(prefers-reduced-motion:reduce){
+  body:has(.radar-page) #scenery .radar-light-layer{animation:none!important;transform:none!important;opacity:1}
+}
