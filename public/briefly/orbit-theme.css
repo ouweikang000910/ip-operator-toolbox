@@ -15,3 +15,12 @@ html{background:#030306}body{min-height:100vh;background:transparent;position:re
 @media(prefers-reduced-motion:reduce){#orbit-scenery:before{animation:none}}
 }
 @media print{#orbit-scenery{display:none}}
+
+@media screen {
+.review-record{border-top:1px solid #78618f66;margin-top:19px;padding-top:15px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;color:#c9bbd9;font-size:11px}.review-record strong{display:block;color:#e8ddf2;font-size:12px;font-weight:500}.review-record span{display:block;font-size:10px;margin-top:5px;color:#b4a6c7}.review-record p{width:100%;margin:2px 0;white-space:pre-wrap;line-height:1.8;overflow-wrap:anywhere}.review-record button{font-size:11px}.version-note{margin:14px 20px 0;padding:12px;background:#2d203d;border:1px solid #8e6aab80;border-radius:7px;color:#d6bee9;font-size:11px;line-height:1.9}.version-note button{display:block;margin-top:8px}.version-note p{margin:5px 0;overflow-wrap:anywhere}.recheck-note{font-size:10px;color:#e0bcf5;line-height:1.7;margin:3px 0}.item-note{overflow-wrap:anywhere;white-space:pre-wrap}.source-details p{white-space:pre-wrap}.source-details b{font-weight:500;color:#dcc4ee}.list-footnote{align-items:start}.list-footnote svg{flex-shrink:0;margin-top:3px}#review-status{margin-bottom:18px}.progress-label{flex-wrap:wrap}.progress-label strong{font-weight:500}.question-source{border-left:2px solid #8e6aab;padding-left:8px}.checklist-scroll{max-height:490px}
+@media(max-width:520px){.review-record{font-size:10px}.review-record button{font-size:10px}.version-note{margin:12px 14px 0}.checklist-scroll{max-height:610px}input,textarea,select{scroll-margin-top:20px}}
+}
+@media print{.review-record{border:1px solid #aaa;padding:12px;margin-top:14px;color:#222}.review-record button,.version-note{display:none}.review-record span{display:block;font-size:11px}.review-record p,.item-note{white-space:pre-wrap}.recheck-note{font-size:11px}}
+
+.checklist-scroll.short-list{max-height:none}
+@media print{.source-details{display:block!important;margin-left:28px}.source-details summary{display:none}.source-details p{font-size:10px;line-height:1.7}.review-record{break-inside:avoid}}
