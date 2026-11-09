@@ -17,3 +17,13 @@ export async function fetchWebTopics(query,period,{signal,fetcher=fetch,endpoint
   if(!response.ok){if(response.status===429)throw Error('搜索较多，请稍后再试');throw Error('联网搜索暂时不可用，请稍后重试');}
   return validateWebResults(await response.json(),query);
 }
+
+export async function fetchPlatformMaterials(query,{signal,fetcher=fetch,endpoint=WEB_SEARCH_ENDPOINT}={}){
+  const url=new URL(endpoint);
+  url.search=new URLSearchParams({q:query,period:'all',mode:'materials'}).toString();
+  const response=await fetcher(url,{signal,cache:'no-store',credentials:'omit'});
+  if(!response.ok)throw Error('平台素材搜索暂时不可用');
+  const data=await response.json();
+  if(data?.version!==1||data.query!==query||!Array.isArray(data.groups))throw Error('平台素材数据异常');
+  return data.groups.filter(group=>typeof group?.id==='string'&&Array.isArray(group.items));
+}
