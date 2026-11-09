@@ -1,5 +1,5 @@
 import {RADAR_TOPIC_LIMIT,radarCategories,shanghaiDay} from './radar-core.mjs';
-import {fetchWebTopics} from './web-search-client.mjs';
+import {fetchPlatformMaterials,fetchWebTopics} from './web-search-client.mjs?v=2.0.3';
 const hosted=document.documentElement.dataset.hosting==='github-pages';
 const radarRefreshNote=hosted?'榜单约每半小时自动更新；点击刷新读取最新已发布榜单，更新时间以页面标注为准。':'每次打开检查更新，10 分钟内复用当天数据；手动刷新间隔至少 30 秒。';
 const $=selector=>document.querySelector(selector);
@@ -21,7 +21,7 @@ const materialsDialog=document.createElement('dialog');
 materialsDialog.className='materials-dialog';
 materialsDialog.setAttribute('aria-labelledby','materials-title');
 document.body.append(materialsDialog);
-let materialsTopic=null,materialsRequest=null;
+let materialsTopic=null,materialsRequest=null,platformRequest=null;
 let motion=localStorage.getItem('toolbox-online-motion')!=='off';
 const time=value=>value?new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(value)):'—';
 const dayLabel=day=>day?.replace(/^(\d+)-(\d+)-(\d+)$/,'$1 年 $2 月 $3 日')||'';
@@ -139,17 +139,72 @@ async function loadMaterials(item){
     }
   }
 }
+const materialPlatforms=[
+  ['douyin','抖音','douyin.com','https://www.douyin.com/search/'],
+  ['xiaohongshu','小红书','xiaohongshu.com','https://www.xiaohongshu.com/search_result?keyword='],
+  ['bilibili','B 站','bilibili.com','https://search.bilibili.com/all?keyword='],
+  ['kuaishou','快手','kuaishou.com','https://www.kuaishou.com/search/video?searchKey='],
+  ['weibo','微博','weibo.com','https://s.weibo.com/weibo?q='],
+  ['zhihu','知乎','zhihu.com','https://www.zhihu.com/search?type=content&q='],
+  ['cctv','央视网','tv.cctv.com','https://search.cctv.com/search.php?type=video&qtext='],
+  ['tencent','腾讯视频','v.qq.com','https://v.qq.com/x/search/?q='],
+  ['youtube','YouTube','youtube.com','https://www.youtube.com/results?search_query='],
+];
+function platformGroups(query,groups=null){
+  const byId=new Map((groups||[]).map(group=>[group.id,group]));
+  return materialPlatforms.map(([id,label,host,search])=>{
+    const group=byId.get(id);
+    const items=(group?.items||[]).slice(0,5).flatMap(item=>{
+      if(typeof item?.title!=='string')return [];
+      try{
+        const url=new URL(item.url);
+        if(!['http:','https:'].includes(url.protocol)||url.username||url.password||
+           (url.hostname!==host&&!url.hostname.endsWith('.'+host)))return [];
+        return [`<li><a href="${esc(url.href)}" target="_blank" rel="noopener noreferrer">${esc(item.title)} ${icon('external')}</a></li>`];
+      }catch{return [];}
+    });
+    const status=groups===null?'正在查找…':items.length?`找到 ${items.length} 条公开素材`:group?.status==='available'?'暂无公开索引结果':'暂未取得结果';
+    return `<section class="material-platform"><div class="material-platform-heading"><h4>${label} <small>${status}</small></h4><a href="${esc(search+encodeURIComponent(query))}" target="_blank" rel="noopener noreferrer">去${label}搜索 ${icon('external')}</a></div>${items.length?`<ul>${items.join('')}</ul>`:''}</section>`;
+  }).join('');
+}
+async function loadPlatformMaterials(item){
+  platformRequest?.abort();
+  const controller=new AbortController();
+  platformRequest=controller;
+  const target=materialsDialog.querySelector('.materials-platforms');
+  const status=target.querySelector('[role="status"]');
+  const list=target.querySelector('.material-platform-list');
+  const query=item.title.trim().slice(0,80);
+  list.innerHTML=platformGroups(query);
+  status.textContent='正在按平台查找公开作品…';
+  const timeout=setTimeout(()=>controller.abort(),23000);
+  try{
+    const groups=await fetchPlatformMaterials(query,{signal:controller.signal});
+    if(platformRequest!==controller)return;
+    list.innerHTML=platformGroups(query,groups);
+    status.textContent=groups.some(group=>group.items.length)?'点击标题打开作品，也可到平台继续搜。':'这次暂未找到公开作品，可到各平台继续搜。';
+  }catch{
+    if(platformRequest!==controller)return;
+    list.innerHTML=platformGroups(query,[]);
+    status.textContent='平台素材暂时无法加载，仍可打开各平台的搜索入口。';
+  }finally{
+    clearTimeout(timeout);
+    if(platformRequest===controller)platformRequest=null;
+  }
+}
 function openMaterials(item){
   if(!item)return;
   materialsTopic=item;
   const links=materialLinks(item.sources,new Set());
-  materialsDialog.innerHTML=`<header><span class="eyebrow">热点素材</span><button type="button" class="button" data-action="close-materials" autofocus>关闭</button></header><h2 id="materials-title">${esc(item.title)}</h2><section class="materials-existing"><h3>${item.kind?'选题来源':'上榜平台'}</h3><div class="source-links">${links.join('')}</div></section><div class="materials-results" aria-live="polite"></div>`;
+  materialsDialog.innerHTML=`<header><span class="eyebrow">热点素材</span><button type="button" class="button" data-action="close-materials" autofocus>关闭</button></header><h2 id="materials-title">${esc(item.title)}</h2><section class="materials-existing"><h3>${item.kind?'选题来源':'上榜平台'}</h3><div class="source-links">${links.join('')}</div></section><section class="materials-platforms"><h3>平台素材</h3><p role="status"></p><div class="material-platform-list"></div></section><div class="materials-results" aria-live="polite"></div>`;
   materialsDialog.showModal();
+  loadPlatformMaterials(item);
   loadMaterials(item);
 }
 function cancelMaterials(){
   materialsRequest?.abort();
-  materialsRequest=null;
+  platformRequest?.abort();
+  materialsRequest=platformRequest=null;
   materialsTopic=null;
 }
 materialsDialog.addEventListener('close',()=>{if(!materialsDialog.open)cancelMaterials();});
