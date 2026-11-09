@@ -17,6 +17,11 @@ const onlineTools=[
 ];
 let route=location.hash==='#radar'?'radar':'home',category='全部',radar=null,loading=false,requestPromise=null,loadError='',lastClientFetch=0;
 let searchDraft='',query='',searchPeriod='week',webResult=null,webLoading=false,webError='',webController=null,searchSequence=0,displayedTopics=[];
+const materialsDialog=document.createElement('dialog');
+materialsDialog.className='materials-dialog';
+materialsDialog.setAttribute('aria-labelledby','materials-title');
+document.body.append(materialsDialog);
+let materialsTopic=null,materialsRequest=null;
 let motion=localStorage.getItem('toolbox-online-motion')!=='off';
 const time=value=>value?new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date(value)):'—';
 const dayLabel=day=>day?.replace(/^(\d+)-(\d+)-(\d+)$/,'$1 年 $2 月 $3 日')||'';
@@ -32,12 +37,12 @@ function searchPanel(){
 }
 function webTopicCard(item,index){
   const published=item.publishedAt?new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(item.publishedAt))+' 发布':'发布时间待核验';
-  return `<article class="radar-card"><div class="topic-meta"><span class="rank ${index<3?'top':''}">${String(index+1).padStart(2,'0')}</span><span class="category-tag">${esc(item.category)}</span><span class="format-tag">${esc(item.contentType)}</span><time class="topic-date" ${item.publishedAt?`datetime="${esc(item.publishedAt)}"`:''}>${published}</time></div><h3>${esc(item.title)}</h3><div class="angle"><small>创作切入 · 自动建议</small><p>${esc(item.angle)}</p></div><div class="source-links">${item.sources.map(source=>`<a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(source.name)} ${icon('external')}<small>查看原文来源</small></a>`).join('')}</div><div class="topic-actions"><span>${item.sources.length>1?item.sources.length+' 个来源同标题':item.kind==='news'?'新闻搜索推荐':'相关网页线索'}</span><button data-action="copy" data-index="${index}" aria-label="复制第${index+1}条选题">${icon('copy')}复制选题</button></div></article>`;
+  return `<article class="radar-card"><div class="topic-meta"><span class="rank ${index<3?'top':''}">${String(index+1).padStart(2,'0')}</span><span class="category-tag">${esc(item.category)}</span><span class="format-tag">${esc(item.contentType)}</span><time class="topic-date" ${item.publishedAt?`datetime="${esc(item.publishedAt)}"`:''}>${published}</time></div><h3><button type="button" class="topic-title" data-action="materials" data-index="${index}" aria-haspopup="dialog">${esc(item.title)}</button></h3><div class="angle"><small>创作切入 · 自动建议</small><p>${esc(item.angle)}</p></div><div class="source-links">${item.sources.map(source=>`<a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(source.name)} ${icon('external')}<small>查看原文来源</small></a>`).join('')}</div><div class="topic-actions"><span>${item.sources.length>1?item.sources.length+' 个来源同标题':item.kind==='news'?'新闻搜索推荐':'相关网页线索'}</span><button data-action="copy" data-index="${index}" aria-label="复制第${index+1}条选题">${icon('copy')}复制选题</button><button type="button" class="materials-trigger" data-action="materials" data-index="${index}" aria-haspopup="dialog">${icon('search')}查看素材</button></div></article>`;
 }
 function topicCard(item,index,searching){
   const number=searching?index+1:item.rank;
   const topicDay=item.day||shanghaiDay();
-  return `<article class="radar-card"><div class="topic-meta"><span class="rank ${number<=3?'top':''}">${String(number).padStart(2,'0')}</span><span class="category-tag">${esc(item.category)}</span><span class="format-tag">${esc(item.contentType)}</span>${searching?`<time class="topic-date" datetime="${esc(topicDay)}">${topicDay===shanghaiDay()?'今天':topicDay.slice(5)}上榜</time>`:''}</div><h3>${esc(item.title)}</h3><div class="angle"><small>创作切入</small><p>${esc(item.angle)}</p></div><div class="source-links">${item.sources.map(source=>`<a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer" title="${esc(source.name)} · ${source.heatLabel} ${esc(source.heat||'未提供')} · ${dayLabel(topicDay)} ${time(source.fetchedAt)}获取">${esc(source.name)} #${source.rank}${source.cached?' · 缓存':''} ${icon('external')}<small>${source.heat?heat(source.heat)+' '+esc(source.heatLabel):'平台未提供热度数值'}</small></a>`).join('')}</div><div class="topic-actions"><span>${item.sources.length>1?item.sources.length+' 个平台同题上榜':esc(item.classification)}</span><button data-action="copy" data-index="${index}" aria-label="复制第${number}条选题">${icon('copy')}复制选题</button></div></article>`;
+  return `<article class="radar-card"><div class="topic-meta"><span class="rank ${number<=3?'top':''}">${String(number).padStart(2,'0')}</span><span class="category-tag">${esc(item.category)}</span><span class="format-tag">${esc(item.contentType)}</span>${searching?`<time class="topic-date" datetime="${esc(topicDay)}">${topicDay===shanghaiDay()?'今天':topicDay.slice(5)}上榜</time>`:''}</div><h3><button type="button" class="topic-title" data-action="materials" data-index="${index}" aria-haspopup="dialog">${esc(item.title)}</button></h3><div class="angle"><small>创作切入</small><p>${esc(item.angle)}</p></div><div class="source-links">${item.sources.map(source=>`<a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer" title="${esc(source.name)} · ${source.heatLabel} ${esc(source.heat||'未提供')} · ${dayLabel(topicDay)} ${time(source.fetchedAt)}获取">${esc(source.name)} #${source.rank}${source.cached?' · 缓存':''} ${icon('external')}<small>${source.heat?heat(source.heat)+' '+esc(source.heatLabel):'平台未提供热度数值'}</small></a>`).join('')}</div><div class="topic-actions"><span>${item.sources.length>1?item.sources.length+' 个平台同题上榜':esc(item.classification)}</span><button data-action="copy" data-index="${index}" aria-label="复制第${number}条选题">${icon('copy')}复制选题</button><button type="button" class="materials-trigger" data-action="materials" data-index="${index}" aria-haspopup="dialog">${icon('search')}查看素材</button></div></article>`;
 }
 function radarBody(){
   const today=shanghaiDay(),current=radar?.day===today?radar:null,items=current?.items||[],available=current?.sources?.filter(s=>s.status!=='unavailable').length||0;
@@ -80,6 +85,74 @@ async function copyTopic(index){
     const dialog=$('#modal');dialog.innerHTML=`<h2>复制选题</h2><p>当前浏览器未允许自动复制，请选中文字复制。</p><textarea readonly aria-label="选题与来源">${esc(text)}</textarea><button class="button" data-action="close">完成</button>`;dialog.showModal();dialog.querySelector('textarea').select();
   }
 }
+const materialUrlKey=url=>url.origin+url.pathname+url.search;
+function materialLinks(sources,seen){
+  return sources.map(source=>{
+    let url;
+    try{url=new URL(source.url);}catch{return '';}
+    if(!['http:','https:'].includes(url.protocol)||url.username||url.password)return '';
+    const key=materialUrlKey(url);
+    if(seen.has(key))return '';
+    seen.add(key);
+    return `<a href="${esc(url.href)}" target="_blank" rel="noopener noreferrer">${esc(source.name)} ${icon('external')}</a>`;
+  }).filter(Boolean);
+}
+function renderMaterialResults(items,seen){
+  const groups=new Map();
+  for(const item of items){
+    const links=materialLinks(item.sources,seen);
+    if(!links.length)continue;
+    const group=item.kind==='news'?'相关报道':'相关网页';
+    if(!groups.has(group))groups.set(group,[]);
+    const published=item.kind==='news'&&item.publishedAt
+      ? new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',dateStyle:'medium'}).format(new Date(item.publishedAt))
+      : '发布时间待核验';
+    groups.get(group).push(`<li><strong>${esc(item.title)}</strong><small>${published}</small><div class="source-links">${links.join('')}</div></li>`);
+  }
+  return [...groups].map(([title,entries])=>`<section><h3>${title} <small>${entries.length} 条</small></h3><ul>${entries.join('')}</ul></section>`).join('');
+}
+async function loadMaterials(item){
+  materialsRequest?.abort();
+  const controller=new AbortController();
+  materialsRequest=controller;
+  const results=materialsDialog.querySelector('.materials-results');
+  const query=item.title.trim().slice(0,80);
+  const searchUrl=new URL('https://www.bing.com/news/search');
+  searchUrl.search=new URLSearchParams({q:query,mkt:'zh-CN'}).toString();
+  const searchLink=`<a class="button" href="${esc(searchUrl.href)}" target="_blank" rel="noopener noreferrer">打开新闻搜索 ${icon('external')}</a>`;
+  results.setAttribute('aria-busy','true');
+  results.textContent='正在联网查找相关素材…';
+  const timeout=setTimeout(()=>controller.abort(),30000);
+  try{
+    const data=await fetchWebTopics(query,'all',{signal:controller.signal});
+    if(materialsRequest!==controller)return;
+    const seen=new Set(Array.from(materialsDialog.querySelectorAll('.materials-existing a'),link=>materialUrlKey(new URL(link.href))));
+    results.innerHTML=renderMaterialResults(data.items,seen)||`<p>暂时没有找到更多相关素材。</p>${searchLink}`;
+  }catch{
+    if(materialsRequest!==controller)return;
+    results.innerHTML=`<p>暂时无法加载相关素材。上方已有来源仍可打开。</p><div class="materials-controls"><button type="button" class="button" data-action="retry-materials">重新查找</button>${searchLink}</div>`;
+  }finally{
+    clearTimeout(timeout);
+    if(materialsRequest===controller){
+      materialsRequest=null;
+      results.removeAttribute('aria-busy');
+    }
+  }
+}
+function openMaterials(item){
+  if(!item)return;
+  materialsTopic=item;
+  const links=materialLinks(item.sources,new Set());
+  materialsDialog.innerHTML=`<header><span class="eyebrow">热点素材</span><button type="button" class="button" data-action="close-materials" autofocus>关闭</button></header><h2 id="materials-title">${esc(item.title)}</h2><section class="materials-existing"><h3>${item.kind?'选题来源':'上榜平台'}</h3><div class="source-links">${links.join('')}</div></section><div class="materials-results" aria-live="polite"></div>`;
+  materialsDialog.showModal();
+  loadMaterials(item);
+}
+function cancelMaterials(){
+  materialsRequest?.abort();
+  materialsRequest=null;
+  materialsTopic=null;
+}
+materialsDialog.addEventListener('close',()=>{if(!materialsDialog.open)cancelMaterials();});
 document.addEventListener('click',async event=>{const target=event.target.closest('[data-action]');if(!target)return;const action=target.dataset.action;
   if(action==='tools'){event.preventDefault();if(route!=='home'){route='home';history.replaceState(null,'','#home');render();}$('#tools').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});$('#tools').focus({preventScroll:true});return;}
   if(action==='refresh')await loadRadar(true);
@@ -89,6 +162,9 @@ document.addEventListener('click',async event=>{const target=event.target.closes
   if(action==='suggestion'){searchDraft=target.dataset.query;applySearch();}
   if(action==='period'){searchPeriod=target.dataset.period;category='全部';if(query)runWebSearch();else render();}
   if(action==='clear-search'){webController?.abort();searchSequence++;webLoading=false;webResult=null;webError='';searchDraft=query='';category='全部';render();}
+  if(action==='materials')openMaterials(displayedTopics[Number(target.dataset.index)]);
+  if(action==='retry-materials'&&materialsTopic)loadMaterials(materialsTopic);
+  if(action==='close-materials'){cancelMaterials();materialsDialog.close();}
   if(action==='close')$('#modal').close();
   if(action==='motion'){motion=!motion;localStorage.setItem('toolbox-online-motion',motion?'on':'off');document.body.classList.toggle('static',!motion);target.setAttribute('aria-label',motion?'暂停背景动效':'开启背景动效');target.title=target.getAttribute('aria-label');}
 });
@@ -104,7 +180,7 @@ async function runWebSearch(){
 function applySearch(){query=searchDraft.trim().slice(0,80);category='全部';if(query)runWebSearch();else{webController?.abort();searchSequence++;webLoading=false;webResult=null;webError='';render();}}
 document.addEventListener('submit',event=>{if(event.target.id!=='direction-search')return;event.preventDefault();searchDraft=$('#direction-query').value;applySearch();});
 document.addEventListener('input',event=>{if(event.target.id!=='direction-query')return;searchDraft=event.target.value;if(!searchDraft)applySearch();});
-window.addEventListener('hashchange',()=>{route=location.hash==='#radar'?'radar':'home';category='全部';render();window.scrollTo(0,0);if(route==='radar')loadRadar();});
+window.addEventListener('hashchange',()=>{if(materialsDialog.open){cancelMaterials();materialsDialog.close();}route=location.hash==='#radar'?'radar':'home';category='全部';render();window.scrollTo(0,0);if(route==='radar')loadRadar();});
 function checkFresh(){if(document.hidden||route!=='radar')return;if(!radar||radar.day!==shanghaiDay()||Date.now()-lastClientFetch>10*60*1000)loadRadar();}
 document.addEventListener('visibilitychange',checkFresh);window.addEventListener('focus',checkFresh);setInterval(checkFresh,60000);
 render();if(route==='radar')loadRadar();
