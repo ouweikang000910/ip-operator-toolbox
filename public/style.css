@@ -28,3 +28,44 @@
 .materials-results li{padding:10px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
 .materials-results li small{display:block;margin:2px 0 6px}
 .materials-controls{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Keep the radar readable on both desktop and narrow screens. */
+.radar-page .radar-heading .eyebrow,.radar-page .radar-heading .date,
+.radar-page .radar-meta,.radar-page .radar-meta>span:last-child,
+.radar-page .results-heading small,.radar-page .category-filter button span,
+.radar-page .category-tag,.radar-page .format-tag,.radar-page .topic-date,
+.radar-page .angle small,.radar-page .source-links small,
+.radar-page .topic-actions>span,.radar-page .search-footnote,
+.radar-page .search-footnote button,.radar-page .search-suggestions>span,
+.radar-page .live-search-badge,.radar-page .source-statuses span,
+.radar-page .source-statuses small,.materials-dialog small{font-size:.875rem}
+.radar-page .radar-heading h1{font-size:clamp(2rem,5vw,2.75rem)}
+.radar-page .radar-card h3{font-size:1.375rem;line-height:1.42}
+.radar-page .results-heading h2,.radar-page .radar-loading h2{font-size:1.25rem}
+.radar-page .radar-heading p,.radar-page .angle p,
+.radar-page .radar-search label,.radar-page .search-input-row input,
+.radar-page .radar-loading p,.radar-page .search-empty p,
+.radar-page .radar-method,.radar-page .radar-method p,
+.materials-dialog p,.materials-dialog h3,.materials-dialog .materials-results{font-size:1rem}
+.radar-page .button,.radar-page .category-filter button,
+.radar-page .source-links a,.radar-page .topic-actions button,
+.radar-page .search-suggestions button,.radar-page .search-period button,
+.radar-page .search-expanded,.radar-page .source-statuses>div,
+.materials-dialog .button,.materials-dialog .source-links a{font-size:.9375rem}
+.radar-page .topic-meta,.radar-page .source-links{flex-wrap:wrap}
+.radar-page .topic-actions button,.materials-dialog .button{min-height:36px}
+.radar-page .topic-actions>span{max-width:none}
+.materials-dialog h2{font-size:1.5rem}
+.materials-dialog .materials-results{line-height:1.65}
+.materials-platforms{margin-top:18px;padding-top:15px;border-top:1px solid var(--line)}
+.materials-platforms p{margin-bottom:10px}
+.material-platform-list{display:grid;gap:8px}
+.material-platform{padding:10px 12px;border:1px solid var(--line);border-radius:8px}
+.material-platform-heading{display:flex;align-items:baseline;justify-content:space-between;gap:4px 14px;flex-wrap:wrap}
+.material-platform-heading h4{margin:0;font-size:1rem}
+.material-platform-heading small{color:var(--sub);font-weight:400;margin-left:.25rem}
+.material-platform-heading a{color:var(--gold);font-size:.9375rem}
+.material-platform a svg{width:.875em;height:.875em;vertical-align:-.07em}
+.material-platform ul{margin:6px 0 0;padding-left:1.2em}
+.material-platform li{padding:4px 0;overflow-wrap:anywhere}
+.material-platform li a{color:inherit;text-decoration:underline;text-underline-offset:3px}
